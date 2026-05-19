@@ -33,29 +33,40 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Download Flet Template and Build APK
+      - name: Manual Project Setup and Build APK
+        env:
+          CI: "true"
+          FLUTTER_SUPPRESS_ANALYTICS: "true"
         run: |
-          # 1. Принимаем лицензии Android
+          # 1. Принимаем лицензии Android стандартным системным путем
           yes | sdkmanager --licenses || true
           
-          # 2. Обманываем кэш шаблонов Flet
+          # 2. Глушим аналитику Flutter на корню
+          flutter config --no-analytics
+          
+          # 3. Обманываем кэш шаблонов Flet
           mkdir -p ~/.cache/flet/apps
           curl -L -o flet-app-template.zip https://github.com/flet-dev/flet-app-template/archive/refs/heads/main.zip
           mv flet-app-template.zip ~/.cache/flet/apps/flet-app-template-main.zip
           
-          # 3. Создаем чистую структуру проекта
-          flet create app_clean
+          # 4. ВРУЧНУЮ собираем структуру проекта без вызова flet create
+          mkdir -p app_clean
           
-          # 4. Находим твой файл дневника в репозитории
+          # 5. Генерируем обязательный файл конфигурации flet.toml вручную
+          echo '[app]' > app_clean/flet.toml
+          echo 'name = "SchoolApp"' >> app_clean/flet.toml
+          echo 'path = "main.py"' >> app_clean/flet.toml
+          
+          # 6. Находим твой файл дневника в репозитории
           ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
           
-          # 5. БЕЗОПАСНАЯ СКЛЕЙКА: создаем чистый main.py, пишем туда импорт и добавляем твой код без повреждения отступов
+          # 7. Склеиваем код: пишем импорт библиотеки и добавляем твой оригинальный код ниже
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
           
-          # 6. Собираем приложение
+          # 8. Запускаем сборку. Закрываем стандартный ввод, чтобы пресечь любые попытки задать вопрос
           cd app_clean
-          flet build apk
+          flet build apk --no-interactive < /dev/null
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
