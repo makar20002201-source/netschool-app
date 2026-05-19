@@ -35,10 +35,11 @@ jobs:
 
       - name: Build APK
         run: |
-          flet build apk main.py
+          cd PythonProject
+          flet build apk "main.py дневник"
 
       - name: Upload APK
         uses: actions/artifacts@v4
         with:
           name: school-app-release
-          path: build/apk/*.apk
+          path: PythonProject/build/apk/*.apk
