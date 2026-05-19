@@ -46,10 +46,14 @@ jobs:
           # 3. Создаем чистую структуру проекта
           flet create app_clean
           
-          # 4. Находим твой файл дневника и копируем его вместо дефолтного
-          find . -name "*дневник*" -exec cp {} app_clean/main.py \;
+          # 4. Находим твой файл дневника в репозитории
+          ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
           
-          # 5. Собираем приложение
+          # 5. БЕЗОПАСНАЯ СКЛЕЙКА: создаем чистый main.py, пишем туда импорт и добавляем твой код без повреждения отступов
+          echo "import flet as ft" > app_clean/main.py
+          cat "$ORIGINAL_FILE" >> app_clean/main.py
+          
+          # 6. Собираем приложение
           cd app_clean
           flet build apk
 
