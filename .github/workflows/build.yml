@@ -39,7 +39,7 @@ jobs:
           flet build apk "main.py дневник"
 
       - name: Upload APK
-        uses: actions/artifacts@v4
+        uses: actions/upload-artifact@v4
         with:
           name: school-app-release
           path: PythonProject/build/apk/*.apk
