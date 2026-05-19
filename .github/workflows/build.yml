@@ -40,23 +40,18 @@ jobs:
 
       - name: Hard Reset Project Structure and Build
         run: |
-          # 1. Создаем абсолютно чистую, изолированную папку без русских букв в путях
-          mkdir app_clean
+          # 1. Создаем встроенный чистый шаблон Flet, который не требует скачивания из сети
+          flet create app_clean
           
-          # 2. Копируем туда твой файл, жестко переименовывая его в правильный main.py
+          # 2. Заменяем дефолтный main.py на твой рабочий файл дневника
           cp "PythonProject/main.py дневник" app_clean/main.py
           
-          # 3. Создаем обязательный файл настроек flet.toml, чтобы сборщик не ругался на структуру
-          echo '[app]' > app_clean/flet.toml
-          echo 'name = "SchoolApp"' >> app_clean/flet.toml
-          echo 'path = "main.py"' >> app_clean/flet.toml
-          
-          # 4. Переходим в чистую папку и собираем
+          # 3. Переходим в созданную рабочую папку и запускаем компиляцию
           cd app_clean
           flet build apk
 
       - name: Upload APK
-        uses: actions/artifacts@v4
+        uses: actions/upload-artifact@v4
         with:
           name: school-app-release
           path: app_clean/build/apk/*.apk
