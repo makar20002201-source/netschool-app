@@ -3,52 +3,65 @@ name: Build Flet APK
 on:
   push:
     branches: [ main ]
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Скачиваем код репозитория
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Настраиваем Java (нужна для сборки Android)
+      # Устанавливаем Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Устанавливаем Java
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
 
-      # 3. Настраиваем Flutter стандартным экшеном
+      # Устанавливаем Flutter через проверенный экшен, который у нас работал
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      # 4. Готовим структуру папок, чтобы не было русских букв в путях
-      - name: Prepare Clean Project Directory
+      # Ставим сам Flet в систему окружения
+      - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
+          pip install flet
+
+      # Настройка проекта и запуск сборки БЕЗ интерактивных вопросов
+      - name: Hard Reset Project Structure and Build
+        run: |
+          # 1. Принудительно отключаем отправку аналитики во Flutter
+          flutter config --no-analytics
+          
+          # 2. Создаем чистую временную папку без русских букв в путях
           mkdir -p app_clean
+          
+          # 3. Генерируем обязательный flet.toml
           echo '[app]' > app_clean/flet.toml
           echo 'name = "SchoolApp"' >> app_clean/flet.toml
           echo 'path = "main.py"' >> app_clean/flet.toml
           
-          # Находим твой файл дневника и переносим его в main.py с импортом
+          # 4. Находим оригинальный файл дневника и переносим его содержимое в main.py
           ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
+          
+          # 5. Переходим в папку и запускаем сборку с флагом полной автоматизации
+          cd app_clean
+          flet build apk --no-interactive
 
-      # 5. ИСПОЛЬЗУЕМ ОФИЦИАЛЬНЫЙ ЭКШЕН СБОРКИ FLET
-      # Он сам знает, как правильно и без интерактивных вопросов скомпилировать проект
-      - name: Build Android APK via Flet Action
-        uses: flet-dev/flet-build-action@v1
-        with:
-          target: apk
-          project_dir: app_clean
-
-      # 6. Сохраняем готовый файл
-      - name: Upload APK Artifact
+      # Сохраняем готовый файл на GitHub, чтобы ты мог его скачать
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: school-app-release
