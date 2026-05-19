@@ -33,8 +33,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
+      - name: Accept Android Licenses
+        run: |
+          yes | sdkmanager --licenses || true
+
       - name: Prepare Files and Build APK
         run: |
           cd PythonProject
           cp "main.py дневник" main.py
-          echo "" | flet build apk main.py
+          flet build apk
