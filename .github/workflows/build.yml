@@ -37,36 +37,35 @@ jobs:
         env:
           CI: "true"
           FLUTTER_SUPPRESS_ANALYTICS: "true"
+          # Системные переменные, которые Flet CLI ищет автоматически:
+          FLET_FLUTTER_PATH: ${{ env.FLUTTER_ROOT }}
+          FLET_NON_INTERACTIVE: "true"
         run: |
-          # 1. Жестко прописываем путь к Flutter в PATH текущей сессии
+          # 1. Добавляем Flutter в глобальный PATH текущего шага
           export PATH="$FLUTTER_ROOT/bin:$PATH"
           
-          # 2. Глушим аналитику Flutter
+          # 2. Отключаем аналитику Flutter
           flutter config --no-analytics
           
-          # 3. Обманываем кэш шаблонов Flet
+          # 3. Подкладываем шаблон Flet в кэш
           mkdir -p ~/.cache/flet/apps
           curl -L -o flet-app-template.zip https://github.com/flet-dev/flet-app-template/archive/refs/heads/main.zip
           mv flet-app-template.zip ~/.cache/flet/apps/flet-app-template-main.zip
           
-          # 4. Вручную создаем структуру проекта
+          # 4. Создаем чистую структуру папок
           mkdir -p app_clean
           
-          # 5. Генерируем flet.toml
+          # 5. Пишем правильный файл конфигурации flet.toml
           echo '[app]' > app_clean/flet.toml
           echo 'name = "SchoolApp"' >> app_clean/flet.toml
           echo 'path = "main.py"' >> app_clean/flet.toml
           
-          # 6. Находим твой файл дневника и склеиваем с импортом
+          # 6. Ищем оригинальный файл дневника и склеиваем его с импортом flet
           ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
           
-          # 7. Принудительно связываем Flet с бинарником Flutter
-          flet config flutter_dir "$FLUTTER_ROOT"
-          flet config flutter_executable "$FLUTTER_ROOT/bin/flutter"
-          
-          # 8. Запускаем сборку, подсовывая пустой ввод вместо нажатия клавиш
+          # 7. Запускаем сборку. Закрываем стандартный ввод, чтобы убить любые Prompt-запросы
           cd app_clean
           flet build apk < /dev/null
 
