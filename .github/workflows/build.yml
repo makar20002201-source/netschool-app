@@ -38,20 +38,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Build APK
+      - name: Hard Reset Project Structure and Build
         run: |
-          # 1. Создаем абсолютно чистую временную папку для сборки
-          flet create build_dir
+          # 1. Создаем абсолютно чистую, изолированную папку без русских букв в путях
+          mkdir app_clean
           
-          # 2. Копируем твой рабочий файл дневника внутрь новой чистой структуры под именем main.py
-          cp "PythonProject/main.py дневник" build_dir/main.py
+          # 2. Копируем туда твой файл, жестко переименовывая его в правильный main.py
+          cp "PythonProject/main.py дневник" app_clean/main.py
           
-          # 3. Переходим туда и запускаем сборку локального шаблона
-          cd build_dir
+          # 3. Создаем обязательный файл настроек flet.toml, чтобы сборщик не ругался на структуру
+          echo '[app]' > app_clean/flet.toml
+          echo 'name = "SchoolApp"' >> app_clean/flet.toml
+          echo 'path = "main.py"' >> app_clean/flet.toml
+          
+          # 4. Переходим в чистую папку и собираем
+          cd app_clean
           flet build apk
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/artifacts@v4
         with:
           name: school-app-release
-          path: build_dir/build/apk/*.apk
+          path: app_clean/build/apk/*.apk
