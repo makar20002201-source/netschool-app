@@ -38,15 +38,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Auto-Find File and Build APK
+      - name: Download Flet Template and Build APK
         run: |
-          # 1. Создаем встроенный чистый шаблон Flet
+          # 1. Создаем системную папку кэша, где Flet ожидает увидеть шаблон
+          mkdir -p ~/.cache/flet/apps
+          
+          # 2. Скачиваем официальный шаблон сборки напрямую через curl
+          curl -L -o flet-app-template.zip https://github.com/flet-dev/flet-app-template/archive/refs/heads/main.zip
+          
+          # 3. Переносим скачанный архив в кэш под именем, которое ищет сборщик
+          mv flet-app-template.zip ~/.cache/flet/apps/flet-app-template-main.zip
+          
+          # 4. Создаем чистую структуру проекта
           flet create app_clean
           
-          # 2. Умный поиск файла по имени во всем репозитории и копирование в шаблон
+          # 5. Находим твой файл дневника и заменяем им шаблонный код
           find . -name "*дневник*" -exec cp {} app_clean/main.py \;
           
-          # 3. Переходим в созданную рабочую папку и запускаем компиляцию
+          # 6. Собираем приложение
           cd app_clean
           flet build apk
 
