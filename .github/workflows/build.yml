@@ -38,14 +38,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Prepare Files and Build APK
+      - name: Purge Cache and Build APK
         run: |
+          # 1. Глобальная зачистка кэша Flet во всей системе Linux
+          rm -rf ~/.flet
+          rm -rf ~/.cache/flet
+          
+          # 2. Переход в папку проекта и локальная зачистка
           cd PythonProject
           cp "main.py дневник" main.py
-          
-          # Жесткая зачистка старого кэша версий Flet
           rm -rf .flet
           rm -rf build
           
-          # Собираем APK в чистом окружении
+          # 3. Чистый запуск сборки с нуля
           flet build apk
