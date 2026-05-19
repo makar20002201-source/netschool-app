@@ -6,7 +6,6 @@ on:
 
 jobs:
   build:
-    # Переключаем сервер на macOS (только тут можно собирать для Айфонов)
     runs-on: macos-latest
 
     steps:
@@ -40,15 +39,15 @@ jobs:
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
 
-      - name: Build iOS App (No Sign)
+      - name: Build iOS App (IPA)
         run: |
           cd app_clean
-          # Собираем проект под iOS без цифровой подписи Apple
-          flet build ios --no-interactive
+          # Исправили таргет на 'ipa' и добавили сборку без подписи
+          yes | flet build ipa --no-sign
 
       - name: Upload iOS Payload
         uses: actions/upload-artifact@v4
         with:
           name: school-app-ios
-          # Сохраняем готовую папку сборки
-          path: app_clean/build/ios
+          # Сохраняем сгенерированную папку сборки
+          path: app_clean/build/ipa
