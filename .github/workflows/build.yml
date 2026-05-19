@@ -33,27 +33,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Download Flet Template and Build APK
+      - name: Fix Code and Build APK
         run: |
-          # 1. Принимаем лицензии Android стандартным системным способом
+          # 1. Принимаем лицензии Android
           yes | sdkmanager --licenses || true
           
-          # 2. Создаем системную папку кэша, где Flet ожидает увидеть шаблон
+          # 2. Обманываем кэш шаблонов Flet
           mkdir -p ~/.cache/flet/apps
-          
-          # 3. Скачиваем официальный шаблон сборки напрямую через curl
           curl -L -o flet-app-template.zip https://github.com/flet-dev/flet-app-template/archive/refs/heads/main.zip
-          
-          # 4. Переносим скачанный архив в кэш
           mv flet-app-template.zip ~/.cache/flet/apps/flet-app-template-main.zip
           
-          # 5. Создаем чистую структуру проекта
+          # 3. Создаем чистую структуру проекта
           flet create app_clean
           
-          # 6. Находим твой файл дневника и заменяем им шаблонный код
+          # 4. Находим твой файл дневника и копируем его
           find . -name "*дневник*" -exec cp {} app_clean/main.py \;
           
-          # 7. Собираем приложение
+          # 5. ЖЕСТКИЙ ХАК КОДА: Принудительно вставляем импорт flet в самое начало файла main.py
+          sed -i '1s/^/import flet as ft\n/' app_clean/main.py
+          
+          # 6. Собираем приложение
           cd app_clean
           flet build apk
 
