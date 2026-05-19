@@ -38,35 +38,32 @@ jobs:
           CI: "true"
           FLUTTER_SUPPRESS_ANALYTICS: "true"
         run: |
-          # 1. Принимаем лицензии Android стандартным системным путем
-          yes | sdkmanager --licenses || true
-          
-          # 2. Глушим аналитику Flutter на корню
+          # 1. Глушим аналитику Flutter
           flutter config --no-analytics
           
-          # 3. Обманываем кэш шаблонов Flet
+          # 2. Обманываем кэш шаблонов Flet
           mkdir -p ~/.cache/flet/apps
           curl -L -o flet-app-template.zip https://github.com/flet-dev/flet-app-template/archive/refs/heads/main.zip
           mv flet-app-template.zip ~/.cache/flet/apps/flet-app-template-main.zip
           
-          # 4. ВРУЧНУЮ собираем структуру проекта без вызова flet create
+          # 3. Вручную создаем структуру проекта
           mkdir -p app_clean
           
-          # 5. Генерируем обязательный файл конфигурации flet.toml вручную
+          # 4. Генерируем обязательный flet.toml
           echo '[app]' > app_clean/flet.toml
           echo 'name = "SchoolApp"' >> app_clean/flet.toml
           echo 'path = "main.py"' >> app_clean/flet.toml
           
-          # 6. Находим твой файл дневника в репозитории
+          # 5. Находим твой файл дневника в репозитории
           ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
           
-          # 7. Склеиваем код: пишем импорт библиотеки и добавляем твой оригинальный код ниже
+          # 6. Склеиваем код: пишем импорт и добавляем твой оригинальный код ниже
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
           
-          # 8. Запускаем сборку. Закрываем стандартный ввод, чтобы пресечь любые попытки задать вопрос
+          # 7. Запускаем чистую сборку БЕЗ флага --no-interactive, но с глухим вводом
           cd app_clean
-          flet build apk --no-interactive < /dev/null
+          flet build apk < /dev/null
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
