@@ -34,20 +34,20 @@ jobs:
           echo 'name = "SchoolApp"' >> app_clean/flet.toml
           echo 'path = "main.py"' >> app_clean/flet.toml
           
-          # Находим твой файл дневника и переносим его в main.py
+          # Находим оригинальный файл дневника и копируем его содержимое в main.py
           ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
 
-      - name: Build iOS App (IPA)
+      - name: Build iOS App Simulator
         run: |
           cd app_clean
-          # Исправили таргет на 'ipa' и добавили сборку без подписи
-          yes | flet build ipa --no-sign
+          # Собираем чистый билд под симулятор iOS, который не просит платных подписей
+          yes | flet build ios-simulator
 
       - name: Upload iOS Payload
         uses: actions/upload-artifact@v4
         with:
           name: school-app-ios
-          # Сохраняем сгенерированную папку сборки
-          path: app_clean/build/ipa
+          # Забираем готовую папку с результатами сборки
+          path: app_clean/build/ios-simulator
