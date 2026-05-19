@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Fix Code and Build APK
+      - name: Download Flet Template and Build APK
         run: |
           # 1. Принимаем лицензии Android
           yes | sdkmanager --licenses || true
@@ -46,13 +46,10 @@ jobs:
           # 3. Создаем чистую структуру проекта
           flet create app_clean
           
-          # 4. Находим твой файл дневника и копируем его
+          # 4. Находим твой файл дневника и копируем его вместо дефолтного
           find . -name "*дневник*" -exec cp {} app_clean/main.py \;
           
-          # 5. ЖЕСТКИЙ ХАК КОДА: Принудительно вставляем импорт flet в самое начало файла main.py
-          sed -i '1s/^/import flet as ft\n/' app_clean/main.py
-          
-          # 6. Собираем приложение
+          # 5. Собираем приложение
           cd app_clean
           flet build apk
 
