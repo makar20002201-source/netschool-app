@@ -38,17 +38,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Purge Cache and Build APK
+      - name: Build APK
         run: |
-          # 1. Глобальная зачистка кэша Flet во всей системе Linux
-          rm -rf ~/.flet
-          rm -rf ~/.cache/flet
+          # 1. Создаем абсолютно чистую временную папку для сборки
+          flet create build_dir
           
-          # 2. Переход в папку проекта и локальная зачистка
-          cd PythonProject
-          cp "main.py дневник" main.py
-          rm -rf .flet
-          rm -rf build
+          # 2. Копируем твой рабочий файл дневника внутрь новой чистой структуры под именем main.py
+          cp "PythonProject/main.py дневник" build_dir/main.py
           
-          # 3. Чистый запуск сборки с нуля
+          # 3. Переходим туда и запускаем сборку локального шаблона
+          cd build_dir
           flet build apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-app-release
+          path: build_dir/build/apk/*.apk
