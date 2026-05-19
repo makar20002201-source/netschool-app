@@ -37,4 +37,4 @@ jobs:
         run: |
           cd PythonProject
           cp "main.py дневник" main.py
-          flet build apk --no-interactive
+          echo "" | flet build apk main.py
