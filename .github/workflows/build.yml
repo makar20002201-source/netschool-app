@@ -42,4 +42,5 @@ jobs:
         run: |
           cd PythonProject
           cp "main.py дневник" main.py
-          flet build apk
+          pip install --upgrade flet
+          flet build apk --verbose
