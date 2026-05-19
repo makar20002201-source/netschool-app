@@ -61,7 +61,11 @@ jobs:
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
           
-          # 7. Запускаем чистую сборку БЕЗ флага --no-interactive, но с глухим вводом
+          # 7. ТАКТИЧЕСКИЙ МАНЕВР: Принудительно скармливаем Flet путь к Flutter
+          # FLUTTER_ROOT автоматически создается экшеном subosito
+          flet config flutter_dir "$FLUTTER_ROOT"
+          
+          # 8. Запускаем чистую сборку с перенаправлением «пустого» ввода
           cd app_clean
           flet build apk < /dev/null
 
@@ -70,3 +74,4 @@ jobs:
         with:
           name: school-app-release
           path: app_clean/build/apk/*.apk
+          
