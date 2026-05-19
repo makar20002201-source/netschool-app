@@ -38,13 +38,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Hard Reset Project Structure and Build
+      - name: Auto-Find File and Build APK
         run: |
-          # 1. Создаем встроенный чистый шаблон Flet, который не требует скачивания из сети
+          # 1. Создаем встроенный чистый шаблон Flet
           flet create app_clean
           
-          # 2. Заменяем дефолтный main.py на твой рабочий файл дневника
-          cp "PythonProject/main.py дневник" app_clean/main.py
+          # 2. Умный поиск файла по имени во всем репозитории и копирование в шаблон
+          find . -name "*дневник*" -exec cp {} app_clean/main.py \;
           
           # 3. Переходим в созданную рабочую папку и запускаем компиляцию
           cd app_clean
