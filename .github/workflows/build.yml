@@ -1,4 +1,4 @@
-name: Build Flet APK
+name: Build Flet iOS
 
 on:
   push:
@@ -6,7 +6,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Переключаем сервер на macOS (только тут можно собирать для Айфонов)
+    runs-on: macos-latest
 
     steps:
       - name: Checkout code
@@ -16,12 +17,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '21'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -33,36 +28,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Hard Reset Project Structure and Build
-        env:
-          # Отключаем интерактивные вопросы на уровне движка Flet
-          CI: "true"
-          FLET_NON_INTERACTIVE: "true"
-          PURPLE_NON_INTERACTIVE: "true"
+      - name: Prepare Clean Project Directory
         run: |
-          # 1. Отключаем аналитику Flutter
-          flutter config --no-analytics
-          
-          # 2. Создаем чистую структуру папок
           mkdir -p app_clean
-          
-          # 3. Генерируем конфигурационный flet.toml
           echo '[app]' > app_clean/flet.toml
           echo 'name = "SchoolApp"' >> app_clean/flet.toml
           echo 'path = "main.py"' >> app_clean/flet.toml
           
-          # 4. Находим твой файл дневника и собираем main.py
+          # Находим твой файл дневника и переносим его в main.py
           ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
-          
-          # 5. Переходим в папку и запускаем чистую сборку. 
-          # Команда 'yes' будет автоматически отвечать "y" (да) на любые скрытые вопросы Android/Flutter
-          cd app_clean
-          yes | flet build apk
 
-      - name: Upload APK
+      - name: Build iOS App (No Sign)
+        run: |
+          cd app_clean
+          # Собираем проект под iOS без цифровой подписи Apple
+          flet build ios --no-interactive
+
+      - name: Upload iOS Payload
         uses: actions/upload-artifact@v4
         with:
-          name: school-app-release
-          path: app_clean/build/apk/*.apk
+          name: school-app-ios
+          # Сохраняем готовую папку сборки
+          path: app_clean/build/ios
