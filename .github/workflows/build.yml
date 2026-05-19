@@ -38,34 +38,35 @@ jobs:
           CI: "true"
           FLUTTER_SUPPRESS_ANALYTICS: "true"
         run: |
-          # 1. Глушим аналитику Flutter
+          # 1. Жестко прописываем путь к Flutter в PATH текущей сессии
+          export PATH="$FLUTTER_ROOT/bin:$PATH"
+          
+          # 2. Глушим аналитику Flutter
           flutter config --no-analytics
           
-          # 2. Обманываем кэш шаблонов Flet
+          # 3. Обманываем кэш шаблонов Flet
           mkdir -p ~/.cache/flet/apps
           curl -L -o flet-app-template.zip https://github.com/flet-dev/flet-app-template/archive/refs/heads/main.zip
           mv flet-app-template.zip ~/.cache/flet/apps/flet-app-template-main.zip
           
-          # 3. Вручную создаем структуру проекта
+          # 4. Вручную создаем структуру проекта
           mkdir -p app_clean
           
-          # 4. Генерируем обязательный flet.toml
+          # 5. Генерируем flet.toml
           echo '[app]' > app_clean/flet.toml
           echo 'name = "SchoolApp"' >> app_clean/flet.toml
           echo 'path = "main.py"' >> app_clean/flet.toml
           
-          # 5. Находим твой файл дневника в репозитории
+          # 6. Находим твой файл дневника и склеиваем с импортом
           ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
-          
-          # 6. Склеиваем код: пишем импорт и добавляем твой оригинальный код ниже
           echo "import flet as ft" > app_clean/main.py
           cat "$ORIGINAL_FILE" >> app_clean/main.py
           
-          # 7. ТАКТИЧЕСКИЙ МАНЕВР: Принудительно скармливаем Flet путь к Flutter
-          # FLUTTER_ROOT автоматически создается экшеном subosito
+          # 7. Принудительно связываем Flet с бинарником Flutter
           flet config flutter_dir "$FLUTTER_ROOT"
+          flet config flutter_executable "$FLUTTER_ROOT/bin/flutter"
           
-          # 8. Запускаем чистую сборку с перенаправлением «пустого» ввода
+          # 8. Запускаем сборку, подсовывая пустой ввод вместо нажатия клавиш
           cd app_clean
           flet build apk < /dev/null
 
@@ -74,4 +75,3 @@ jobs:
         with:
           name: school-app-release
           path: app_clean/build/apk/*.apk
-          
