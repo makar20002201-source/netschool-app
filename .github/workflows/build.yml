@@ -28,11 +28,6 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Accept Android Licenses
-        uses: gautamkrishnar/android-licenses-action@v1
-        with:
-          android_sdk_home: ${{ env.ANDROID_HOME }}
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -40,22 +35,25 @@ jobs:
 
       - name: Download Flet Template and Build APK
         run: |
-          # 1. Создаем системную папку кэша, где Flet ожидает увидеть шаблон
+          # 1. Принимаем лицензии Android стандартным системным способом
+          yes | sdkmanager --licenses || true
+          
+          # 2. Создаем системную папку кэша, где Flet ожидает увидеть шаблон
           mkdir -p ~/.cache/flet/apps
           
-          # 2. Скачиваем официальный шаблон сборки напрямую через curl
+          # 3. Скачиваем официальный шаблон сборки напрямую через curl
           curl -L -o flet-app-template.zip https://github.com/flet-dev/flet-app-template/archive/refs/heads/main.zip
           
-          # 3. Переносим скачанный архив в кэш под именем, которое ищет сборщик
+          # 4. Переносим скачанный архив в кэш
           mv flet-app-template.zip ~/.cache/flet/apps/flet-app-template-main.zip
           
-          # 4. Создаем чистую структуру проекта
+          # 5. Создаем чистую структуру проекта
           flet create app_clean
           
-          # 5. Находим твой файл дневника и заменяем им шаблонный код
+          # 6. Находим твой файл дневника и заменяем им шаблонный код
           find . -name "*дневник*" -exec cp {} app_clean/main.py \;
           
-          # 6. Собираем приложение
+          # 7. Собираем приложение
           cd app_clean
           flet build apk
 
