@@ -36,11 +36,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flet==0.27.3
+          pip install flet
 
       - name: Prepare Files and Build APK
         run: |
           cd PythonProject
           cp "main.py дневник" main.py
-          pip install --upgrade flet
-          flet build apk --verbose
+          
+          # Жесткая зачистка старого кэша версий Flet
+          rm -rf .flet
+          rm -rf build
+          
+          # Собираем APK в чистом окружении
+          flet build apk
