@@ -3,7 +3,7 @@ name: Deploy Flet Web to GitHub Pages
 on:
   push:
     branches:
-      - main # Если твоя ветка в репозитории называется master, замени main на master
+      - main # Если твоя главная ветка называется master, замени main на master
 
 permissions:
   contents: read
@@ -36,8 +36,8 @@ jobs:
 
       - name: Build Web App
         run: |
-          # Передаем 'yes', чтобы автоматически соглашаться со всеми вопросами сборщика Flutter/Flet в консоли
-          echo "yes" | flet build web main.py --base-url /${{ github.event.repository.name }}/ --no-analytics
+          # Убрали проблемный флаг, оставив только автоматическое согласие на сборку Flutter
+          echo "yes" | flet build web main.py --base-url /${{ github.event.repository.name }}/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
