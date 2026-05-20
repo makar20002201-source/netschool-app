@@ -1,53 +1,49 @@
-name: Build Flet iOS
+name: Deploy Flet Web to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main # Если у тебя ветка называется master, напиши вместо main слово master
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: macos-latest
-
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flet
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install flet; fi
 
-      - name: Prepare Clean Project Directory
+      - name: Build Web App
         run: |
-          mkdir -p app_clean
-          echo '[app]' > app_clean/flet.toml
-          echo 'name = "SchoolApp"' >> app_clean/flet.toml
-          echo 'path = "main.py"' >> app_clean/flet.toml
-          
-          # Находим оригинальный файл дневника и копируем его содержимое в main.py
-          ORIGINAL_FILE=$(find . -name "*дневник*" -print -quit)
-          echo "import flet as ft" > app_clean/main.py
-          cat "$ORIGINAL_FILE" >> app_clean/main.py
+          # Собираем Flet под Web, чтобы на iOS всё летало
+          flet build web main.py --base-url /${{ github.event.repository.name }}/
 
-      - name: Build iOS App Simulator
-        run: |
-          cd app_clean
-          # Собираем чистый билд под симулятор iOS, который не просит платных подписей
-          yes | flet build ios-simulator
-
-      - name: Upload iOS Payload
-        uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: school-app-ios
-          # Забираем готовую папку с результатами сборки
-          path: app_clean/build/ios-simulator
+          path: build/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
