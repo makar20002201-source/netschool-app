@@ -36,8 +36,15 @@ jobs:
 
       - name: Build Web App
         run: |
-          # Бесконечный поток "y" закроет все вопросы по лицензиям Flutter/Flet намертво
-          yes | flet build web main.py --base-url /${{ github.event.repository.name }}/
+          # Проверяем, как называется файл, и запускаем сборку нужного
+          if [ -f main.py ]; then
+            TARGET_FILE="main.py"
+          else
+            TARGET_FILE=$(ls *.py | head -n 1)
+          fi
+          
+          echo "Собираем файл: $TARGET_FILE"
+          yes | flet build web "$TARGET_FILE" --base-url /${{ github.event.repository.name }}/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
