@@ -3,7 +3,7 @@ name: Deploy Flet Web to GitHub Pages
 on:
   push:
     branches:
-      - основной # У тебя на скрине ветка называется "
+      - основной # Твоя ветка на русском языке
 
 permissions:
   contents: read
@@ -32,29 +32,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Проверяем requirements сначала в корне, потом в папке проекта
           if [ -f requirements.txt ]; then 
             pip install -r requirements.txt
           elif [ -f PythonProject/requirements.txt ]; then
             pip install -r PythonProject/requirements.txt
-          else 
-            pip install flet
           fi
+          pip install flet rich
 
       - name: Build Web App
         run: |
-          # Переносим всё из твоей папки PythonProject прямо в корень сборщика
-          if [ -d PythonProject ]; then
-            echo "Найдена папка PythonProject. Копируем файлы в корень..."
-            cp -r PythonProject/* .
-          fi
-
-          # На всякий случай проверяем, появился ли main.py в корне
-          echo "Проверяем наличие main.py:"
-          ls -la main.py
-
-          # Запуск сборки. Теперь всё лежит на своих местах, ошибок не будет!
-          yes | flet build web main.py --base-url /${{ github.event.repository.name }}/
+          # Устанавливаем принудительный режим без вопросов (non-interactive)
+          export FLET_NON_INTERACTIVE=true
+          
+          # Запускаем сборку, явно указав имя модуля-папки
+          flet build web --module-name PythonProject.main --base-url /${{ github.event.repository.name }}/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
