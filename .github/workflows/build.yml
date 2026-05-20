@@ -3,7 +3,7 @@ name: Deploy Flet Web to GitHub Pages
 on:
   push:
     branches:
-      - основной # У тебя на скрине ветка называется "осно
+      - основной # У тебя на скрине ветка называется "
 
 permissions:
   contents: read
