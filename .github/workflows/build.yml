@@ -3,7 +3,7 @@ name: Deploy Flet Web to GitHub Pages
 on:
   push:
     branches:
-      - main # Если твоя главная ветка называется master, замени main на master
+      - main # Если главная ветка называется master, замени main на master
 
 permissions:
   contents: read
@@ -40,18 +40,20 @@ jobs:
 
       - name: Build Web App
         run: |
-          # Проверяем, где лежит файл. Если он в папке src, собираем прямо оттуда
-          if [ -f src/main.py ]; then
-            echo "Файл найден в src/main.py, запускаем сборку..."
-            yes | flet build web src/main.py --base-url /${{ github.event.repository.name }}/
-          elif [ -f src/shool_app.py ]; then
-            echo "Файл найден в src/shool_app.py, запускаем сборку..."
-            yes | flet build web src/shool_app.py --base-url /${{ github.event.repository.name }}/
-          else
-            # Если файлов нет в src, ищем любой .py в корне
-            TARGET_FILE=$(ls *.py | grep -v "build" | head -n 1)
-            yes | flet build web "$TARGET_FILE" --base-url /${{ github.event.repository.name }}/
+          # Вытаскиваем абсолютно все файлы из папки src в корень, чтобы обмануть тупой сборщик Flet
+          if [ -d src ]; then
+            echo "Копируем файлы из src в корень репозитория..."
+            cp -r src/* .
           fi
+          
+          # Если основного файла main.py всё ещё нет, но есть shool_app.py, переименовываем его в main.py
+          if [ ! -f main.py ] && [ -f shool_app.py ]; then
+            echo "Переименовываем shool_app.py в main.py для сборки..."
+            mv shool_app.py main.py
+          fi
+
+          # Теперь для Flet всё выглядит так, будто проект всегда лежал в корне. Собираем!
+          yes | flet build web main.py --base-url /${{ github.event.repository.name }}/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
