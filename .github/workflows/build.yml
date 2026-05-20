@@ -36,8 +36,8 @@ jobs:
 
       - name: Build Web App
         run: |
-          # Убрали проблемный флаг, оставив только автоматическое согласие на сборку Flutter
-          echo "yes" | flet build web main.py --base-url /${{ github.event.repository.name }}/
+          # Бесконечный поток "y" закроет все вопросы по лицензиям Flutter/Flet намертво
+          yes | flet build web main.py --base-url /${{ github.event.repository.name }}/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
