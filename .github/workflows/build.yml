@@ -32,19 +32,26 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install flet; fi
+          if [ -f requirements.txt ]; then 
+            pip install -r requirements.txt
+          else 
+            pip install flet
+          fi
 
       - name: Build Web App
         run: |
-          # Проверяем, как называется файл, и запускаем сборку нужного
-          if [ -f main.py ]; then
-            TARGET_FILE="main.py"
+          # Проверяем, где лежит файл. Если он в папке src, собираем прямо оттуда
+          if [ -f src/main.py ]; then
+            echo "Файл найден в src/main.py, запускаем сборку..."
+            yes | flet build web src/main.py --base-url /${{ github.event.repository.name }}/
+          elif [ -f src/shool_app.py ]; then
+            echo "Файл найден в src/shool_app.py, запускаем сборку..."
+            yes | flet build web src/shool_app.py --base-url /${{ github.event.repository.name }}/
           else
-            TARGET_FILE=$(ls *.py | head -n 1)
+            # Если файлов нет в src, ищем любой .py в корне
+            TARGET_FILE=$(ls *.py | grep -v "build" | head -n 1)
+            yes | flet build web "$TARGET_FILE" --base-url /${{ github.event.repository.name }}/
           fi
-          
-          echo "Собираем файл: $TARGET_FILE"
-          yes | flet build web "$TARGET_FILE" --base-url /${{ github.event.repository.name }}/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
