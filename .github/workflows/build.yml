@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - основной # У тебя на скрине ветка называется "основной"
-      
+
 permissions:
   contents: read
   pages: write
