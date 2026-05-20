@@ -47,3 +47,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Build Web App
+        run: |
+          # Флаг --no-analytics отключает любые вопросы в консоли во время сборки
+          flet build web main.py --base-url /${{ github.event.repository.name }}/ --no-analytics
